@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="bn">
 <head>
@@ -296,64 +295,115 @@ function extractAmount(text) {
     .replace(/[৳,\sটাকা]/g, "");
 }
 
-/* বাংলা ভয়েস ইনপুট */
+/* বাংলা ভয়েস ইনপুট: বিরতি হলে পুনরায় শুনবে, আগের কথা ধরে রাখবে */
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
 let recognition = null;
+let shouldKeepListening = false;
+let finalTranscript = "";
+let restartTimer = null;
+
+function fillFromTranscript(transcript) {
+  const spoken = transcript.trim();
+  if (!spoken) return;
+
+  const amount = extractAmount(spoken);
+  let description = spoken;
+
+  if (amount !== "") {
+    const normalized = bnDigits(spoken);
+    const numberPattern = /(?:৳\s*)?\d[\d,]*(?:\.\d{1,2})?(?:\s*টাকা)?/g;
+    const matches = [...normalized.matchAll(numberPattern)];
+    const lastMatch = matches[matches.length - 1];
+
+    if (lastMatch) {
+      description = (normalized.slice(0, lastMatch.index) + " " +
+        normalized.slice(lastMatch.index + lastMatch[0].length))
+        .replace(/টাকা/g, " ").replace(/\s+/g, " ").trim();
+      $("amount").value = amount;
+    }
+  }
+
+  $("description").value = description || spoken;
+  $("status").textContent = amount !== ""
+    ? "শোনা কথা: বিবরণ ও টাকার অঙ্ক মিলিয়ে নিন। শেষ হলে ‘শোনা বন্ধ করুন’ চাপুন।"
+    : "কথা শুনছি, কিন্তু টাকার অঙ্ক শনাক্ত হয়নি। অঙ্কটি নিজে লিখতে পারেন।";
+}
 
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = "bn-BD";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
 
   recognition.onstart = () => {
-    $("status").textContent =
-      "শুনছি… এখন খরচের বিবরণ ও টাকার অঙ্ক বলুন।";
-    $("micBtn").textContent = "🎙️ শুনছি…";
+    $("status").textContent = "শুনছি… স্বাভাবিকভাবে কথা বলুন। শেষ হলে ‘শোনা বন্ধ করুন’ চাপুন।";
+    $("micBtn").textContent = "⏹️ শোনা বন্ধ করুন";
   };
 
   recognition.onresult = event => {
-    const spoken = event.results[0][0].transcript;
-
-    $("description").value = spoken;
-
-    const amount = extractAmount(spoken);
-
-    if (amount) {
-      $("amount").value = amount;
-      $("status").textContent =
-        "কথা থেকে লেখা হয়েছে। সেভ করার আগে মিলিয়ে নিন।";
-    } else {
-      $("status").textContent =
-        "লেখা হয়েছে, কিন্তু টাকার অঙ্ক ধরা যায়নি। অঙ্কটি ঘরে লিখুন।";
+    let interimTranscript = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+      const words = result[0].transcript.trim();
+      if (result.isFinal && words) {
+        finalTranscript += (finalTranscript ? " " : "") + words;
+      } else if (words) {
+        interimTranscript += (interimTranscript ? " " : "") + words;
+      }
     }
+    const fullTranscript = (finalTranscript + " " + interimTranscript).trim();
+    if (fullTranscript) fillFromTranscript(fullTranscript);
   };
 
   recognition.onerror = event => {
-    $("status").textContent =
-      "মাইক্রোফোন কাজ করেনি (" + event.error +
-      ")। অনুমতি দিন, অথবা নিচে লিখুন।";
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      shouldKeepListening = false;
+      $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+      $("status").textContent = "মাইক্রোফোনের অনুমতি দিন। এরপর আবার চেষ্টা করুন।";
+    } else if (event.error === "no-speech") {
+      $("status").textContent = "কথা শোনা যায়নি। আবার বলুন; শুনতে থাকার চেষ্টা করছি।";
+    } else if (event.error !== "aborted") {
+      $("status").textContent = "ভয়েসে সাময়িক সমস্যা হয়েছে (" + event.error + ")। আবার শোনার চেষ্টা করছি।";
+    }
   };
 
   recognition.onend = () => {
-    $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+    if (shouldKeepListening) {
+      clearTimeout(restartTimer);
+      restartTimer = setTimeout(() => {
+        if (!shouldKeepListening || !recognition) return;
+        try { recognition.start(); } catch (error) { /* সেশন চালু থাকলে অপেক্ষা */ }
+      }, 350);
+    } else {
+      $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+      $("status").textContent = "শোনা বন্ধ হয়েছে। বিবরণ ও টাকার অঙ্ক মিলিয়ে সংরক্ষণ করুন।";
+    }
   };
 }
 
 $("micBtn").onclick = () => {
   if (!recognition) {
-    $("status").textContent =
-      "এই ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। কিবোর্ডের মাইক্রোফোন ব্যবহার করতে পারেন।";
+    $("status").textContent = "এই ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। Chrome ব্যবহার করুন অথবা কিবোর্ডের মাইক্রোফোন ব্যবহার করুন।";
     return;
   }
-
-  try {
-    recognition.start();
-  } catch (error) {
-    $("status").textContent =
-      "আবার চেষ্টা করুন অথবা বিবরণ নিজে লিখুন।";
+  if (shouldKeepListening) {
+    shouldKeepListening = false;
+    clearTimeout(restartTimer);
+    try { recognition.stop(); } catch (error) {
+      $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+    }
+    return;
+  }
+  finalTranscript = "";
+  shouldKeepListening = true;
+  try { recognition.start(); }
+  catch (error) {
+    shouldKeepListening = false;
+    $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+    $("status").textContent = "আবার মাইক্রোফোন বোতাম চাপুন।";
   }
 };
 
@@ -431,6 +481,12 @@ $("saveBtn").onclick = async () => {
 };
 
 $("clearBtn").onclick = () => {
+  if (shouldKeepListening && recognition) {
+    shouldKeepListening = false;
+    clearTimeout(restartTimer);
+    try { recognition.stop(); } catch (error) {}
+  }
+  finalTranscript = "";
   $("description").value = "";
   $("amount").value = "";
   $("status").textContent = "ঘর খালি করা হয়েছে।";
