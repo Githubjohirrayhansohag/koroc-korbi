@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="bn">
 <head>
@@ -5,126 +6,465 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#14532d">
 <title>আমার খরচের হিসাব</title>
+
 <style>
-:root{font-family:system-ui,-apple-system,"Noto Sans Bengali",sans-serif;color:#17211b;background:#f3f7f3}
-*{box-sizing:border-box}body{margin:0;padding:16px;max-width:620px;margin-inline:auto}
-header{background:#14532d;color:white;padding:20px;border-radius:18px;margin-bottom:14px}
-h1{font-size:1.45rem;margin:0 0 6px}header p{margin:0;opacity:.9}
-.card{background:white;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #1231}
-.total-label{color:#526357;font-size:.95rem}.total{font-size:2rem;font-weight:800;color:#14532d;margin-top:4px}
-button,input,textarea{font:inherit}button{border:0;border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:700}
-.mic{background:#166534;color:#fff;width:100%;font-size:1.1rem;padding:16px}
-.secondary{background:#e5eee7;color:#17452a}.danger{background:#fee2e2;color:#991b1b}
-textarea,input{width:100%;border:1px solid #cbd5ce;border-radius:10px;padding:12px;margin:7px 0 12px;background:white}
-label{font-weight:650;font-size:.95rem}
-.row{display:flex;gap:8px}.row>*{flex:1}
-.hint{font-size:.88rem;color:#5b665e;line-height:1.5}
-.entry{border-top:1px solid #e5eae6;padding:12px 0;display:flex;justify-content:space-between;gap:12px}
-.entry:first-child{border-top:0}.desc{font-weight:650}.meta{font-size:.82rem;color:#68736b;margin-top:4px}.amount{font-weight:800;white-space:nowrap}
-.empty{color:#66736a;text-align:center;padding:18px 4px}
-.status{min-height:1.4em;color:#14532d;font-size:.9rem;margin-top:8px}
-footer{font-size:.82rem;color:#657067;text-align:center;padding:12px}
+:root {
+  font-family: system-ui, -apple-system, "Noto Sans Bengali", sans-serif;
+  color: #17211b;
+  background: #f3f7f3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  max-width: 620px;
+  margin-inline: auto;
+}
+header {
+  background: #14532d;
+  color: white;
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+}
+h1 { font-size: 1.45rem; margin: 0 0 6px; }
+header p { margin: 0; opacity: .9; }
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 0;
+  box-shadow: 0 2px 10px #1231;
+}
+.total-label { color: #526357; font-size: .95rem; }
+.total {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #14532d;
+  margin-top: 4px;
+}
+button, input, textarea { font: inherit; }
+button {
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+button:disabled { opacity: .6; cursor: wait; }
+.mic {
+  background: #166534;
+  color: white;
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 16px;
+}
+.secondary { background: #e5eee7; color: #17452a; }
+.danger { background: #fee2e2; color: #991b1b; }
+textarea, input {
+  width: 100%;
+  border: 1px solid #cbd5ce;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 7px 0 12px;
+  background: white;
+}
+label { font-weight: 650; font-size: .95rem; }
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; min-width: 0; }
+.hint {
+  font-size: .88rem;
+  color: #5b665e;
+  line-height: 1.5;
+}
+.entry {
+  border-top: 1px solid #e5eae6;
+  padding: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.entry:first-child { border-top: 0; }
+.desc { font-weight: 650; overflow-wrap: anywhere; }
+.meta { font-size: .82rem; color: #68736b; margin-top: 4px; }
+.amount { font-weight: 800; white-space: nowrap; }
+.empty { color: #66736a; text-align: center; padding: 18px 4px; }
+.status {
+  min-height: 1.4em;
+  color: #14532d;
+  font-size: .9rem;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+footer {
+  font-size: .82rem;
+  color: #657067;
+  text-align: center;
+  padding: 12px;
+}
 </style>
 </head>
+
 <body>
-<header><h1>আমার খরচের হিসাব</h1><p>কথা বলুন, লিখে নিন, আর দিনের মোট খরচ দেখুন।</p></header>
+<header>
+  <h1>আমার খরচের হিসাব</h1>
+  <p>কথা বলুন, লিখে নিন, আর দিনের মোট খরচ দেখুন।</p>
+</header>
+
 <section class="card">
   <div class="total-label">আজকের মোট খরচ</div>
   <div class="total" id="todayTotal">৳০</div>
   <div class="hint" id="todayCount">আজ ০টি হিসাব</div>
 </section>
+
 <section class="card">
-  <button class="mic" id="micBtn">🎙️ কথা বলে হিসাব লিখুন</button>
-  <div class="status" id="status" role="status">উদাহরণ: “রহিমকে ২০০০ টাকা দিলাম” বা “বাজার ৩৫০ টাকা”</div>
-  <label for="description">কীসের খরচ / কাকে টাকা দিলেন</label>
-  <textarea id="description" rows="2" placeholder="যেমন: রহিমকে দিলাম / বাজার"></textarea>
-  <label for="amount">টাকার পরিমাণ (৳)</label>
-  <input id="amount" inputmode="decimal" type="number" min="0" step="0.01" placeholder="যেমন: ২০০০">
-  <div class="row">
-    <button class="secondary" id="saveBtn">হিসাব সংরক্ষণ</button>
-    <button class="secondary" id="clearBtn" type="button">ঘর খালি করুন</button>
+  <button class="mic" id="micBtn" type="button">
+    🎙️ কথা বলে হিসাব লিখুন
+  </button>
+
+  <div class="status" id="status" role="status">
+    উদাহরণ: “রহিমকে ২০০০ টাকা দিলাম” বা “বাজার ৩৫০ টাকা”
   </div>
-  <p class="hint">কথা বলার পর লেখা ও টাকার অঙ্ক মিলিয়ে নিন, তারপর “হিসাব সংরক্ষণ” চাপুন।</p>
+
+  <label for="description">কীসের খরচ / কাকে টাকা দিলেন</label>
+  <textarea id="description" rows="2"
+    placeholder="যেমন: রহিমকে দিলাম / বাজার"></textarea>
+
+  <label for="amount">টাকার পরিমাণ (৳)</label>
+  <input id="amount" inputmode="decimal" type="number"
+    min="0" step="0.01" placeholder="যেমন: ২০০০">
+
+  <div class="row">
+    <button class="secondary" id="saveBtn" type="button">
+      হিসাব সংরক্ষণ
+    </button>
+    <button class="secondary" id="clearBtn" type="button">
+      ঘর খালি করুন
+    </button>
+  </div>
+
+  <p class="hint">
+    কথা বলার পর বিবরণ ও টাকার অঙ্ক মিলিয়ে নিন।
+    হিসাব সংরক্ষণ করলে ব্রাউজারে রাখা হবে এবং Google Sheets-এ পাঠানো হবে।
+  </p>
 </section>
+
 <section class="card">
   <div class="row" style="align-items:center">
-    <h2 style="font-size:1.15rem;margin:0;flex:2">হিসাবের তালিকা</h2>
-    <button class="secondary" id="exportBtn">CSV ডাউনলোড</button>
+    <h2 style="font-size:1.15rem;margin:0;flex:2">
+      হিসাবের তালিকা
+    </h2>
+    <button class="secondary" id="exportBtn" type="button">
+      CSV ডাউনলোড
+    </button>
   </div>
   <div id="entries"></div>
 </section>
-<footer>হিসাব এই ব্রাউজারেই সেভ থাকে। ব্রাউজারের ডেটা মুছলে হিসাব হারাতে পারে—মাঝে মাঝে CSV ডাউনলোড করে রাখুন।</footer>
+
+<footer>
+  হিসাব এই ব্রাউজারে থাকে। নতুন হিসাব Google Sheets-এ পাঠানোর চেষ্টা করা হয়।
+  Sheet-এ জমা হয়েছে কি না যাচাই করুন এবং নিয়মিত CSV ডাউনলোড করে রাখুন।
+</footer>
+
 <script>
+"use strict";
+
 const $ = id => document.getElementById(id);
-const STORE = 'amar-khoroch-hisab-v1';
+
+const STORE = "amar-khoroch-hisab-v1";
+
+/* আপনার Google Apps Script Web App URL */
+const SHEETS_URL =
+  "https://script.google.com/macros/s/AKfycbzv-n4vxiTalBTWyOvbGf7JxKBXDr34GH48RmojIhY0aOfn4V5jm5Ii85inQG9DVY6YkQ/exec";
+
 let records = [];
-try { records = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch(e) { records = []; }
-const bnDigits = s => String(s).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
-const toBn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
-const money = n => '৳' + toBn(Number(n).toLocaleString('en-US',{maximumFractionDigits:2}));
-const dateKey = d => { const x = new Date(d); return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); };
-function persist(){ localStorage.setItem(STORE, JSON.stringify(records)); render(); }
-function render(){
+
+try {
+  records = JSON.parse(localStorage.getItem(STORE) || "[]");
+  if (!Array.isArray(records)) records = [];
+} catch (error) {
+  records = [];
+}
+
+const bnDigits = value =>
+  String(value).replace(/[০-৯]/g, digit =>
+    "০১২৩৪৫৬৭৮৯".indexOf(digit)
+  );
+
+const toBn = value =>
+  String(value).replace(/\d/g, digit => "০১২৩৪৫৬৭৮৯"[digit]);
+
+const money = value =>
+  "৳" + toBn(
+    Number(value).toLocaleString("en-US", {
+      maximumFractionDigits: 2
+    })
+  );
+
+function dateKey(value) {
+  const date = new Date(value);
+  return date.getFullYear() + "-" +
+    String(date.getMonth() + 1).padStart(2, "0") + "-" +
+    String(date.getDate()).padStart(2, "0");
+}
+
+function persist() {
+  localStorage.setItem(STORE, JSON.stringify(records));
+  render();
+}
+
+function render() {
   const today = dateKey(new Date());
-  const todays = records.filter(r=>dateKey(r.createdAt)===today);
-  $('todayTotal').textContent = money(todays.reduce((s,r)=>s+Number(r.amount),0));
-  $('todayCount').textContent = 'আজ ' + toBn(todays.length) + 'টি হিসাব';
-  const root = $('entries'); root.innerHTML = '';
-  if(!records.length){root.innerHTML='<div class="empty">এখনো কোনো হিসাব যোগ করা হয়নি।</div>';return;}
-  [...records].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).forEach(r=>{
-    const el=document.createElement('div');el.className='entry';
-    const left=document.createElement('div');left.style.minWidth='0';
-    const desc=document.createElement('div');desc.className='desc';desc.textContent=r.description;
-    const meta=document.createElement('div');meta.className='meta';meta.textContent=new Date(r.createdAt).toLocaleString('bn-BD');
-    left.append(desc,meta);
-    const right=document.createElement('div');right.style.textAlign='right';
-    const amount=document.createElement('div');amount.className='amount';amount.textContent=money(r.amount);
-    const del=document.createElement('button');del.className='danger';del.style.padding='5px 9px';del.style.marginTop='6px';del.textContent='মুছুন';
-    del.onclick=()=>{if(confirm('এই হিসাবটি মুছবেন?')){records=records.filter(x=>x.id!==r.id);persist();}};
-    right.append(amount,del);el.append(left,right);root.append(el);
-  });
+
+  const todays = records.filter(record =>
+    dateKey(record.createdAt) === today
+  );
+
+  $("todayTotal").textContent = money(
+    todays.reduce((sum, record) => sum + Number(record.amount), 0)
+  );
+
+  $("todayCount").textContent =
+    "আজ " + toBn(todays.length) + "টি হিসাব";
+
+  const root = $("entries");
+  root.replaceChildren();
+
+  if (!records.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "এখনো কোনো হিসাব যোগ করা হয়নি।";
+    root.appendChild(empty);
+    return;
+  }
+
+  [...records]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .forEach(record => {
+      const entry = document.createElement("div");
+      entry.className = "entry";
+
+      const left = document.createElement("div");
+      left.style.minWidth = "0";
+
+      const description = document.createElement("div");
+      description.className = "desc";
+      description.textContent = record.description;
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      meta.textContent = new Date(record.createdAt).toLocaleString("bn-BD");
+
+      left.append(description, meta);
+
+      const right = document.createElement("div");
+      right.style.textAlign = "right";
+
+      const amount = document.createElement("div");
+      amount.className = "amount";
+      amount.textContent = money(record.amount);
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.type = "button";
+      del.style.padding = "5px 9px";
+      del.style.marginTop = "6px";
+      del.textContent = "মুছুন";
+
+      del.onclick = () => {
+        if (confirm("এই হিসাবটি মুছবেন?")) {
+          records = records.filter(item => item.id !== record.id);
+          persist();
+        }
+      };
+
+      right.append(amount, del);
+      entry.append(left, right);
+      root.appendChild(entry);
+    });
 }
-function extractAmount(text){
-  const normalized=bnDigits(text);
-  const matches=normalized.match(/(?:৳\s*)?(\d+(?:[,.]\d{1,2})?)(?:\s*টাকা)?/g);
-  if(!matches)return '';
-  const last=matches[matches.length-1].replace(/[৳,\sটাকা]/g,'');
-  return last;
+
+function extractAmount(text) {
+  const normalized = bnDigits(text);
+  const matches = normalized.match(
+    /(?:৳\s*)?(\d+(?:[,.]\d{1,2})?)(?:\s*টাকা)?/g
+  );
+
+  if (!matches) return "";
+
+  return matches[matches.length - 1]
+    .replace(/[৳,\sটাকা]/g, "");
 }
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition=null;
-if(SpeechRecognition){
- recognition=new SpeechRecognition(); recognition.lang='bn-BD'; recognition.interimResults=false; recognition.maxAlternatives=1;
- recognition.onstart=()=>{$('status').textContent='শুনছি… এখন খরচের বিবরণ ও টাকার অঙ্ক বলুন।';$('micBtn').textContent='🎙️ শুনছি…';};
- recognition.onresult=e=>{
-  const spoken=e.results[0][0].transcript;
-  $('description').value=spoken;
-  const amount=extractAmount(spoken);
-  if(amount){$('amount').value=amount;$('status').textContent='কথা থেকে লেখা হয়েছে। সেভ করার আগে মিলিয়ে নিন।';}
-  else $('status').textContent='লেখা হয়েছে, কিন্তু টাকার অঙ্ক ধরা যায়নি। অঙ্কটি ঘরে লিখুন।';
- };
- recognition.onerror=e=>{$('status').textContent='মাইক্রোফোন কাজ করেনি ('+e.error+')। অনুমতি দিন, অথবা নিচে লিখুন।';};
- recognition.onend=()=>{$('micBtn').textContent='🎙️ কথা বলে হিসাব লিখুন';};
+
+/* বাংলা ভয়েস ইনপুট */
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+let recognition = null;
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "bn-BD";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    $("status").textContent =
+      "শুনছি… এখন খরচের বিবরণ ও টাকার অঙ্ক বলুন।";
+    $("micBtn").textContent = "🎙️ শুনছি…";
+  };
+
+  recognition.onresult = event => {
+    const spoken = event.results[0][0].transcript;
+
+    $("description").value = spoken;
+
+    const amount = extractAmount(spoken);
+
+    if (amount) {
+      $("amount").value = amount;
+      $("status").textContent =
+        "কথা থেকে লেখা হয়েছে। সেভ করার আগে মিলিয়ে নিন।";
+    } else {
+      $("status").textContent =
+        "লেখা হয়েছে, কিন্তু টাকার অঙ্ক ধরা যায়নি। অঙ্কটি ঘরে লিখুন।";
+    }
+  };
+
+  recognition.onerror = event => {
+    $("status").textContent =
+      "মাইক্রোফোন কাজ করেনি (" + event.error +
+      ")। অনুমতি দিন, অথবা নিচে লিখুন।";
+  };
+
+  recognition.onend = () => {
+    $("micBtn").textContent = "🎙️ কথা বলে হিসাব লিখুন";
+  };
 }
-$('micBtn').onclick=()=>{
- if(!recognition){$('status').textContent='এই ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। কিবোর্ডের মাইক্রোফোন ব্যবহার করে লিখতে পারেন।';return;}
- try{recognition.start();}catch(e){$('status').textContent='আবার চেষ্টা করুন বা লেখা ঘরে নিজে লিখুন।';}
+
+$("micBtn").onclick = () => {
+  if (!recognition) {
+    $("status").textContent =
+      "এই ব্রাউজারে ভয়েস ইনপুট সমর্থিত নয়। কিবোর্ডের মাইক্রোফোন ব্যবহার করতে পারেন।";
+    return;
+  }
+
+  try {
+    recognition.start();
+  } catch (error) {
+    $("status").textContent =
+      "আবার চেষ্টা করুন অথবা বিবরণ নিজে লিখুন।";
+  }
 };
-$('saveBtn').onclick=()=>{
- const description=$('description').value.trim();
- const amount=Number(bnDigits($('amount').value));
- if(!description){$('status').textContent='আগে বিবরণ বলুন বা লিখুন।';$('description').focus();return;}
- if(!Number.isFinite(amount)||amount<=0){$('status').textContent='সঠিক টাকার অঙ্ক লিখুন।';$('amount').focus();return;}
- records.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),description,amount,createdAt:new Date().toISOString()});
- persist();$('description').value='';$('amount').value='';$('status').textContent='হিসাব সংরক্ষণ হয়েছে।'; 
+
+/* ব্রাউজার ও Google Sheets-এ হিসাব পাঠানো */
+$("saveBtn").onclick = async () => {
+  const description = $("description").value.trim();
+  const amount = Number(bnDigits($("amount").value));
+
+  if (!description) {
+    $("status").textContent = "আগে বিবরণ লিখুন।";
+    $("description").focus();
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    $("status").textContent = "সঠিক টাকার অঙ্ক লিখুন।";
+    $("amount").focus();
+    return;
+  }
+
+  const record = {
+    id: Date.now().toString(36) +
+      Math.random().toString(36).slice(2, 7),
+    description,
+    amount,
+    createdAt: new Date().toISOString()
+  };
+
+  /* প্রথমে স্থানীয় ব্রাউজারে সেভ */
+  records.push(record);
+
+  try {
+    persist();
+  } catch (error) {
+    records = records.filter(item => item.id !== record.id);
+    $("status").textContent =
+      "ব্রাউজারে সেভ করা যায়নি।";
+    return;
+  }
+
+  $("description").value = "";
+  $("amount").value = "";
+  $("saveBtn").disabled = true;
+
+  $("status").textContent =
+    "ব্রাউজারে সেভ হয়েছে। Google Sheets-এ পাঠানো হচ্ছে…";
+
+  try {
+    /*
+      no-cors ব্যবহার করলে Google-এর উত্তর পড়া যায় না।
+      তাই এই অনুরোধ পাঠানো মানেই Sheet-এ সেভ হয়েছে,
+      তা নিশ্চিত নয়।
+    */
+    await fetch(SHEETS_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "text/plain;charset=UTF-8"
+      },
+      body: JSON.stringify({
+        description: record.description,
+        amount: record.amount,
+        createdAt: record.createdAt
+      })
+    });
+
+    $("status").textContent =
+      "অনুরোধ পাঠানো হয়েছে। Google Sheet খুলে নতুন সারি এসেছে কি না যাচাই করুন।";
+  } catch (error) {
+    $("status").textContent =
+      "Google Sheets-এ পাঠানো যায়নি। ইন্টারনেট ও Deployment পরীক্ষা করুন।";
+  } finally {
+    $("saveBtn").disabled = false;
+  }
 };
-$('clearBtn').onclick=()=>{$('description').value='';$('amount').value='';$('status').textContent='ঘর খালি করা হয়েছে।';};
-$('exportBtn').onclick=()=>{
- const rows=[['তারিখ ও সময়','বিবরণ','টাকা'],...records.map(r=>[new Date(r.createdAt).toLocaleString('bn-BD'),r.description,r.amount])];
- const csv='\ufeff'+rows.map(row=>row.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
- const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
- const a=document.createElement('a');a.href=url;a.download='amar-khoroch-hisab.csv';a.click();URL.revokeObjectURL(url);
+
+$("clearBtn").onclick = () => {
+  $("description").value = "";
+  $("amount").value = "";
+  $("status").textContent = "ঘর খালি করা হয়েছে।";
 };
+
+/* CSV ডাউনলোড */
+$("exportBtn").onclick = () => {
+  const rows = [
+    ["তারিখ ও সময়", "বিবরণ", "টাকা"],
+    ...records.map(record => [
+      new Date(record.createdAt).toLocaleString("bn-BD"),
+      record.description,
+      record.amount
+    ])
+  ];
+
+  const csv = "\ufeff" + rows.map(row =>
+    row.map(value =>
+      '"' + String(value).replace(/"/g, '""') + '"'
+    ).join(",")
+  ).join("\r\n");
+
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8;" })
+  );
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "amar-khoroch-hisab.csv";
+  link.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
 render();
 </script>
 </body>
