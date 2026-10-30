@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#14532d">
-<title>আমার খরচের হিসাব আপডেট</title>
+<title>আমার খরচের হিসাব</title>
 
 <style>
 :root {
@@ -106,7 +106,7 @@ footer {
 
 <body>
 <header>
-  <h1>আমার খরচের হিসাব আপডেট</h1>
+  <h1>আমার খরচের হিসাব</h1>
   <p>কথা বলুন, লিখে নিন, আর দিনের মোট খরচ দেখুন।</p>
 </header>
 
@@ -304,6 +304,28 @@ let shouldKeepListening = false;
 let finalTranscript = "";
 let restartTimer = null;
 
+// Chrome পুনরায় শুনতে শুরু করলে আগের কয়েকটি শব্দ আবার পাঠাতে পারে।
+// আগের লেখার সঙ্গে মিলে যাওয়া অংশ বাদ দিয়ে শুধু নতুন শব্দ যোগ করি।
+function appendTranscriptWithoutDuplicate(existing, incoming) {
+  const oldWords = existing.trim() ? existing.trim().split(/\s+/) : [];
+  const newWords = incoming.trim() ? incoming.trim().split(/\s+/) : [];
+  if (!newWords.length) return existing;
+
+  const clean = word => word.toLocaleLowerCase("bn-BD").replace(/[.,!?،؛:]/g, "");
+  const maxOverlap = Math.min(oldWords.length, newWords.length, 15);
+
+  for (let size = maxOverlap; size > 0; size--) {
+    const oldTail = oldWords.slice(-size).map(clean).join(" ");
+    const newHead = newWords.slice(0, size).map(clean).join(" ");
+    if (oldTail === newHead) {
+      const remainder = newWords.slice(size).join(" ");
+      return remainder ? (existing.trim() + " " + remainder).trim() : existing.trim();
+    }
+  }
+
+  return (existing.trim() + " " + incoming.trim()).trim();
+}
+
 function fillFromTranscript(transcript) {
   const spoken = transcript.trim();
   if (!spoken) return;
@@ -349,7 +371,7 @@ if (SpeechRecognition) {
       const result = event.results[i];
       const words = result[0].transcript.trim();
       if (result.isFinal && words) {
-        finalTranscript += (finalTranscript ? " " : "") + words;
+        finalTranscript = appendTranscriptWithoutDuplicate(finalTranscript, words);
       } else if (words) {
         interimTranscript += (interimTranscript ? " " : "") + words;
       }
